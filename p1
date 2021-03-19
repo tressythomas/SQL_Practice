@@ -1,0 +1,41 @@
+1. Finding User Purchases
+Write a query that'll identify returning active users. A returning active user is a user that has made a second purchase within 7 days of any other of their purchases. 
+Output a list of user_ids of these returning active users.
+amazon_transactions
+id int
+user_id int
+item varchar
+created_at datetime
+revenue int
+
+select a.user_id 
+from amazon_transactions a,
+     amazon_transactions b
+where  a.user_id = b.user_id
+and a.id<> b.id 
+and a.revenue > 0
+and (b.created_at-a.created_at < 8 or a.created_at-b.created_at <8)
+   group by a.user_id 
+   having count(a.id) > 2
+   order by user_id;
+   
+   
+2. Distances Traveled
+Find the top 10 users that have traveled the greatest distance. Output their names and total distance traveled.
+lyft_rides_log
+id int
+user_id int
+distance int
+
+lyft_users
+id int
+name
+
+   
+select name,sum(distance) 
+from lyft_users a, 
+lyft_rides_log b 
+where b.user_id=a.id 
+group by a.name
+order by sum(distance) desc
+limit 10;
