@@ -1,4 +1,38 @@
 
+--Find the total number of downloads for paying and non-paying users by date. Include only records where non-paying customers have more downloads than paying customers. 
+--The output should be sorted by earliest date first and contain 3 columns date, non-paying downloads, paying downloads.
+3 Tables:
+
+ms_user_dimension
+user_id       int
+acc_id int
+
+ms_acc_dimension
+acc_id int
+paying_customer      varchar
+
+ms_download_facts
+date   datetime
+user_id       int
+downloads     int
+
+select a.date, 
+    sum(a.non_paying_cust_downloads) as tot_non_paying_cust_downloads,
+    sum(a.paying_cust_downloads) as tot_paying_cust_downloads
+from
+    (select date,
+    case when paying_customer='yes' THEN downloads end as paying_cust_downloads,
+    case when paying_customer='no' THEN downloads end as non_paying_cust_downloads
+    from ms_user_dimension a,
+    ms_acc_dimension b,
+    ms_download_facts c
+    where a.acc_id=b.acc_id
+    and a.user_id=c.user_id
+    order by date) a
+GROUP BY date 
+having sum(a.paying_cust_downloads) < sum(a.non_paying_cust_downloads)
+ 
+ 
 
 --Write a query that shows the 5 longest rides from each starting terminal, ordered by terminal, and longest to shortest rides within each terminal. 
 --Limit to rides that occurred before Jan. 8, 2012
