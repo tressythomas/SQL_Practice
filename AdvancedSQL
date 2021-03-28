@@ -1,0 +1,62 @@
+
+--  Write a query that separates the `location` field into separate fields for latitude and longitude.
+--  `location` field (37.709725805163, -122.413623946206) (37.7154876086057, -122.47370623066)
+
+select substr(location,2,a_position-2),
+substr(location,a_position+1,length(location)-a_position-1),
+from (select location,
+POSITION(',' IN location) AS a_position 
+from  tutorial.sf_crime_incidents_2014_01) as a;
+
+--Get acqusitions by periods
+SELECT companies.category_code,
+       COUNT(CASE WHEN acquisitions.acquired_at_cleaned <= companies.founded_at_clean::timestamp + INTERVAL '3 years'
+                       THEN 1 ELSE NULL END) AS acquired_3_yrs,
+       COUNT(CASE WHEN acquisitions.acquired_at_cleaned <= companies.founded_at_clean::timestamp + INTERVAL '5 years'
+                       THEN 1 ELSE NULL END) AS acquired_5_yrs,
+       COUNT(CASE WHEN acquisitions.acquired_at_cleaned <= companies.founded_at_clean::timestamp + INTERVAL '10 years'
+                       THEN 1 ELSE NULL END) AS acquired_10_yrs,
+       COUNT(1) AS total
+  FROM tutorial.crunchbase_companies_clean_date companies
+  JOIN tutorial.crunchbase_acquisitions_clean_date acquisitions
+    ON acquisitions.company_permalink = companies.permalink
+ WHERE founded_at_clean IS NOT NULL
+ GROUP BY 1
+ ORDER BY 5 DESC
+ 
+
+--Write a query that returns the `category` field, but with the first letter capitalized and the rest of the letters in lower-case.
+
+select upper(substr(category,1,1))||lower(substr(category,2,length(category)-1)) 
+from tutorial.sf_crime_incidents_2014_01;
+
+--Write a query that creates an accurate timestamp using the date and time columns. Include a field that is exactly 1 week later as well.
+select (substr(a.date,1,14)||a.time||substr(a.date,21,7))::timestamp
+from tutorial.sf_crime_incidents_2014_01 a;
+
+--Write a query that shows exactly how long ago each indicent was reported
+select now()-(substr(a.date,1,14)||a.time||substr(a.date,21,7))::timestamp
+from tutorial.sf_crime_incidents_2014_01 a;
+
+SELECT cleaned_date,
+       DATE_TRUNC('year'   , cleaned_date) AS year,
+       DATE_TRUNC('month'  , cleaned_date) AS month,
+       DATE_TRUNC('week'   , cleaned_date) AS week,
+       DATE_TRUNC('day'    , cleaned_date) AS day,
+       DATE_TRUNC('hour'   , cleaned_date) AS hour,
+       DATE_TRUNC('minute' , cleaned_date) AS minute,
+       DATE_TRUNC('second' , cleaned_date) AS second,
+       DATE_TRUNC('decade' , cleaned_date) AS decade
+  FROM tutorial.sf_crime_incidents_cleandate;
+ 
+ --Write a query that displays the average number of monthly incidents for each category.
+select category, round(avg(accidents),2) as avg_accidents
+FROM
+(select count(incidnt_num) accidents,
+DATE_TRUNC('month'  , date::date) AS month,
+category
+from tutorial.sf_crime_incidents_2014_01  
+group by category,month
+order by 2 ASC) as a
+group by category ;
+  
