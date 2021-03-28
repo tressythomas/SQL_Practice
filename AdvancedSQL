@@ -1,4 +1,19 @@
 
+
+--Write a query that shows the 5 longest rides from each starting terminal, ordered by terminal, and longest to shortest rides within each terminal. 
+--Limit to rides that occurred before Jan. 8, 2012
+
+select start_terminal,r_rank, duration 
+       from  
+       (select start_terminal, 
+       duration,
+       rank() over(partition by start_terminal order by duration) as r_rank
+       from tutorial.dc_bikeshare_q1_2012
+       where start_time < '2012-01-08 00:00:00'::timestamp) as sub
+where r_rank <=5 
+order by start_terminal, duration;
+
+
 --  Write a query that separates the `location` field into separate fields for latitude and longitude.
 --  `location` field (37.709725805163, -122.413623946206) (37.7154876086057, -122.47370623066)
 
